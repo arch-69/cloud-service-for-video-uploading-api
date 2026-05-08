@@ -1,0 +1,27 @@
+{
+  "name": "cloud-upload-s3",
+  "version": "1.0.0",
+  "description": "a video file uploading platform ",
+  "keywords": [
+    "amazon",
+    "s3"
+  ],
+  "license": "ISC",
+  "author": "abrar",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon config/dotenv ./src/index.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1043.0",
+    "@aws-sdk/s3-request-presigner": "^3.1043.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.6.1",
+    "nodemon": "^3.1.14",
+    "uuid": "^14.0.0",
+    "zod": "^4.4.3"
+  }
+}

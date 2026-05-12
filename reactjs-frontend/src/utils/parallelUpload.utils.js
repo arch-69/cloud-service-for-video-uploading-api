@@ -13,6 +13,12 @@ export const uploadChunksInParallel =
     key,
     fileType,
     onProgress,
+    onPartComplete,
+    onPartError,
+    getIsPaused,
+    waitForResume,
+    signal,
+    loadChunk,
   }) => {
 
     const uploadedParts = [];
@@ -31,29 +37,50 @@ export const uploadChunksInParallel =
         const currentChunk =
           chunks[currentIndex];
 
+        if (signal?.aborted) {
+          return;
+        }
+
+        if (getIsPaused?.()) {
+          await waitForResume?.();
+        }
+
         try {
+          const chunkBlob =
+            currentChunk.chunk
+              ? currentChunk.chunk
+              : await loadChunk?.(
+                  currentChunk.partNumber
+                );
+
+          if (!chunkBlob) {
+            throw new Error("Chunk not found");
+          }
 
           const uploadedPart =
             await uploadChunkService({
-              chunk:
-                currentChunk.chunk,
-
+              chunk: chunkBlob,
               partNumber:
                 currentChunk.partNumber,
-
               uploadId,
               key,
               fileType,
               onProgress,
+              signal,
             });
 
-          uploadedParts.push(
-            uploadedPart
+          uploadedParts.push(uploadedPart);
+          onPartComplete?.(
+            uploadedPart,
+            currentChunk
           );
 
         } catch (error) {
+          onPartError?.(error, currentChunk);
 
-          console.log(error);
+          if (signal?.aborted) {
+            return;
+          }
         }
       }
     };

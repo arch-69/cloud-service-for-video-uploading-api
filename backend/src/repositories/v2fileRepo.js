@@ -2,9 +2,10 @@ import Upload from "../models/uploadFile.js";
 
 const createUpload = (data) => Upload.create(data);
 
-const findByUploadId = ({uploadId}) => Upload.findOne({uploadId});
+const findByUploadId = ({ uploadId }) => Upload.findOne({ uploadId });
 
-const addUploadedPart = ({uploadId, part}) => Upload.findOneAndUpdate(
+const addUploadedPart = ({ uploadId, part }) =>
+  Upload.findOneAndUpdate(
     { uploadId },
 
     {
@@ -14,51 +15,50 @@ const addUploadedPart = ({uploadId, part}) => Upload.findOneAndUpdate(
     },
 
     {
-      returnDocument: 'after'
-    }
+      returnDocument: "after",
+    },
   );
 
-const addFailedPart = ({uploadId, part}) => Upload.findOneAndUpdate(
-    {uploadId},
+const addFailedPart = ({ uploadId, part }) =>
+  Upload.findOneAndUpdate(
+    { uploadId },
     {
-        $push:{
-            failedParts:part
+      $push: {
+        failedParts: part,
+      },
+      $inc: {
+        uploadProgress: 1,
+      },
+    },
+    { returnDocument: "after" },
+  );
+
+const removeFailedPart = (uploadId, partNumber) =>
+  Upload.findOneAndUpdate(
+    { uploadId },
+    {
+      $pull: {
+        failedParts: {
+          partNumber,
         },
-        $inc:{
-          uploadProgress: 1
-        }
+      },
     },
-    {returnDocument: 'after'}
-);
+    { returnDocument: "after" },
+  );
 
-const removeFailedPart = (uploadId, partNumber) => Upload.findOneAndUpdate(
-    {uploadId},
+const changeStatus = ({ uploadId, status }) =>
+  Upload.findOneAndUpdate(
+    { uploadId },
     {
-        $pull:{
-            failedParts:{
-                partNumber,
-            },
-        }
+      $set: {
+        status: status,
+      },
     },
-    {returnDocument: 'after'}
-);
+    { returnDocument: "after" },
+  );
 
-const changeStatus = ({uploadId, status}) => Upload.findOneAndUpdate(
-    {uploadId},
-    {
-        $set:{
-            status:status
-        }
-    },
-    {returnDocument: 'after'}
-);
-
-const getUploadStatus = (
-  uploadId
-) => {
-
+const getUploadStatus = (uploadId) => {
   return Upload.findOne(
-
     { uploadId },
 
     {
@@ -75,40 +75,41 @@ const getUploadStatus = (
       status: 1,
 
       _id: 0,
-    }
+    },
   );
 };
 
-const updateProgress = (uploadId, progress) => Upload.findOneAndUpdate(
-    {uploadId},
+const updateProgress = (uploadId, progress) =>
+  Upload.findOneAndUpdate(
+    { uploadId },
     {
-        $set:{
-            uploadProgress:progress
-        }
-    },
-    {returnDocument: 'after'}
-);
-
-const markAsCompleted = ({uploadId, finalUrl}) => Upload.findOneAndUpdate(
-    {uploadId},
-    {
-      $set:{
-        status:"COMPLETED",
-        fileUrl:finalUrl
+      $set: {
+        uploadProgress: progress,
       },
-     
     },
-    {returnDocument: 'after'}
-);
+    { returnDocument: "after" },
+  );
+
+const markAsCompleted = ({ uploadId, finalUrl }) =>
+  Upload.findOneAndUpdate(
+    { uploadId },
+    {
+      $set: {
+        status: "COMPLETED",
+        fileUrl: finalUrl,
+      },
+    },
+    { returnDocument: "after" },
+  );
 
 export default {
-    createUpload,
-    findByUploadId,
-    addUploadedPart,
-    addFailedPart,
-    removeFailedPart,
-    changeStatus,
-    getUploadStatus,
-    updateProgress,
-    markAsCompleted
-}
+  createUpload,
+  findByUploadId,
+  addUploadedPart,
+  addFailedPart,
+  removeFailedPart,
+  changeStatus,
+  getUploadStatus,
+  updateProgress,
+  markAsCompleted,
+};

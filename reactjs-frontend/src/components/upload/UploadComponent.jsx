@@ -15,6 +15,7 @@ export default function UploadComponent() {
     status,
     uploadedParts,
     uploadFile,
+    error,
   } = useMultipartUpload();
 
   return (
@@ -86,6 +87,22 @@ export default function UploadComponent() {
           />
 
         </div>
+
+        {error && (
+          <div
+            style={{
+              marginTop: "16px",
+              background: "rgba(239, 68, 68, 0.12)",
+              border: "1px solid rgba(239, 68, 68, 0.4)",
+              color: "#fecaca",
+              padding: "10px 12px",
+              borderRadius: "8px",
+              fontSize: "0.9rem",
+            }}
+          >
+            {error}
+          </div>
+        )}
 
         <div
           style={{

@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
 
-
 // -----------------------------------
 // UPLOADED PART SCHEMA
 // -----------------------------------
 
-const uploadedPartSchema = new mongoose.Schema({
-
+const uploadedPartSchema = new mongoose.Schema(
+  {
     partNumber: {
       type: Number,
       required: true,
@@ -26,19 +25,18 @@ const uploadedPartSchema = new mongoose.Schema({
       type: Date,
       default: Date.now,
     },
-
   },
   {
     _id: false,
-  }
+  },
 );
-
 
 // -----------------------------------
 // FAILED PART SCHEMA
 // -----------------------------------
 
-const failedPartSchema = new mongoose.Schema({
+const failedPartSchema = new mongoose.Schema(
+  {
     partNumber: {
       type: Number,
       required: true,
@@ -52,31 +50,26 @@ const failedPartSchema = new mongoose.Schema({
       type: Date,
       default: Date.now,
     },
-
   },
   {
     _id: false,
-  }
+  },
 );
-
 
 // -----------------------------------
 // MAIN UPLOAD SCHEMA
 // -----------------------------------
 
-const uploadSchema =
-  new mongoose.Schema({
-
+const uploadSchema = new mongoose.Schema(
+  {
     // -----------------------------------
     // USER
     // -----------------------------------
 
-    // uploadedBy: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "User",
-    // },
-
-
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
 
     // -----------------------------------
     // FILE INFO
@@ -120,8 +113,6 @@ const uploadSchema =
       type: String,
     },
 
-
-
     // -----------------------------------
     // FILE CATEGORY
     // -----------------------------------
@@ -129,17 +120,10 @@ const uploadSchema =
     category: {
       type: String,
 
-      enum: [
-        "VIDEO",
-        "IMAGE",
-        "DOCUMENT",
-        "OTHER",
-      ],
+      enum: ["VIDEO", "IMAGE", "DOCUMENT", "OTHER"],
 
       default: "OTHER",
     },
-
-
 
     // -----------------------------------
     // MULTIPART UPLOAD INFO
@@ -156,15 +140,9 @@ const uploadSchema =
       required: true,
     },
 
-    uploadedParts: [
-      uploadedPartSchema
-    ],
+    uploadedParts: [uploadedPartSchema],
 
-    failedParts: [
-      failedPartSchema
-    ],
-
-
+    failedParts: [failedPartSchema],
 
     // -----------------------------------
     // PROGRESS TRACKING
@@ -185,14 +163,11 @@ const uploadSchema =
       default: 0,
     },
 
-
-
     // -----------------------------------
     // STATUS
     // -----------------------------------
 
     status: {
-
       type: String,
 
       enum: [
@@ -207,8 +182,6 @@ const uploadSchema =
 
       default: "PENDING",
     },
-
-
 
     // -----------------------------------
     // FLAGS
@@ -229,8 +202,6 @@ const uploadSchema =
       default: false,
     },
 
-
-
     // -----------------------------------
     // VIDEO SPECIFIC
     // -----------------------------------
@@ -248,8 +219,6 @@ const uploadSchema =
       type: String,
     },
 
-
-
     // -----------------------------------
     // STREAMING
     // -----------------------------------
@@ -261,8 +230,6 @@ const uploadSchema =
     hlsMasterPlaylist: {
       type: String,
     },
-
-
 
     // -----------------------------------
     // STORAGE INFO
@@ -276,8 +243,6 @@ const uploadSchema =
       type: String,
     },
 
-
-
     // -----------------------------------
     // ERROR HANDLING
     // -----------------------------------
@@ -285,8 +250,6 @@ const uploadSchema =
     errorMessage: {
       type: String,
     },
-
-
 
     // -----------------------------------
     // TIMESTAMPS
@@ -305,8 +268,6 @@ const uploadSchema =
       type: Date,
     },
 
-
-
     // -----------------------------------
     // AUTO DELETE / EXPIRY
     // -----------------------------------
@@ -314,13 +275,11 @@ const uploadSchema =
     expiresAt: {
       type: Date,
     },
-
   },
   {
     timestamps: true,
-  }
+  },
 );
-
 
 // -----------------------------------
 // INDEXES
@@ -338,15 +297,10 @@ uploadSchema.index({
   createdAt: -1,
 });
 
-
 // -----------------------------------
 // MODEL
 // -----------------------------------
 
-const Upload =
-  mongoose.model(
-    "Upload",
-    uploadSchema
-  );
+const Upload = mongoose.model("Upload", uploadSchema);
 
 export default Upload;

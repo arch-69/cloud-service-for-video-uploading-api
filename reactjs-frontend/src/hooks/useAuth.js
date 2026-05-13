@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useEffect } from "react";
 import {
   readStorage,
   removeStorage,
@@ -25,6 +26,31 @@ export const useAuth = () => {
   const [refreshToken, setRefreshToken] = useState(() =>
     readStorage(REFRESH_TOKEN_KEY, null)
   );
+
+  // Keep in-memory tokens in sync if httpClient refreshes them behind the scenes
+  useEffect(() => {
+    const handler = (ev) => {
+      const { accessToken: at, refreshToken: rt } = ev?.detail || {};
+      if (at) {
+        setAccessToken(at);
+        writeStorage(ACCESS_TOKEN_KEY, at);
+      }
+      if (rt) {
+        setRefreshToken(rt);
+        writeStorage(REFRESH_TOKEN_KEY, rt);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('auth:refreshed', handler);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('auth:refreshed', handler);
+      }
+    };
+  }, []);
 
   const persistSession = ({
     nextUser,

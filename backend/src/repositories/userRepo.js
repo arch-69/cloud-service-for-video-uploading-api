@@ -54,6 +54,17 @@ const getAllUploads = ({ _id }) =>
     })
     .lean();
 
+const getCompletedUploads = ({ _id }) =>
+  User.findById(_id)
+    .select("")
+    .populate({
+      path: "uploadedFile",
+      match: {
+        status: "COMPLETED",
+      },
+      select: "-_id",
+    });
+
 export default {
   findByUserId,
   createUser,
@@ -62,4 +73,5 @@ export default {
   addRefreshToken,
   addUploadingFile,
   getAllUploads,
+  getCompletedUploads,
 };

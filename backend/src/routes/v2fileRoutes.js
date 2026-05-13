@@ -3,6 +3,7 @@ import validate from "../middlewares/validate.js";
 import v2fileSchema from "../validations/v2fileSchema.js";
 import v2ctr from "../controllers/v2fileController.js";
 import auth from "../middlewares/auth.js";
+import checkUserSubscribed from "../middlewares/checkPremium.js";
 
 const v2Routes = express.Router();
 
@@ -11,6 +12,7 @@ v2Routes.post(
   validate(v2fileSchema.startUploadSchema),
   auth.authenticate,
   auth.authorize("user", "admin"),
+  checkUserSubscribed,
   v2ctr.startMultipartUpload,
 );
 v2Routes.post(

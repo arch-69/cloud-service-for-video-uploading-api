@@ -44,12 +44,12 @@ const refresh = async ({ refreshToken }) => {
   const decode = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
   if (!decode) throw new ApiError(409, "bad request");
 
-  const user = await userRepo.findByUserId({ _id: decode._id });
+  const user = await User.findById(decode._id);
 
   if (!user) throw new ApiError(401, "invalid credentials");
 
   const accessToken = await user.generateAccessToken();
-
+  console.log("refreshed access token: ", accessToken);
   return accessToken;
 };
 
@@ -69,7 +69,7 @@ const singInWithGoogle = async (token) => {
     if (user) {
       const accessToken = await user.generateAccessToken();
       const refreshToken = await user.generateRefreshToken();
-
+      await userRepo.addRefreshToken({ _id: user._id, refreshToken });
       return { accessToken, refreshToken, user };
     }
 
@@ -81,6 +81,8 @@ const singInWithGoogle = async (token) => {
 
     const accessToken = await genUser.generateAccessToken();
     const refreshToken = await genUser.generateRefreshToken();
+
+    await userRepo.addRefreshToken({ _id: genUser._id, refreshToken });
 
     return { accessToken, refreshToken, user: genUser };
   } catch (error) {

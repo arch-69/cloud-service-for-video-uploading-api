@@ -11,6 +11,7 @@ export default function UploadPanel({
   isPaused,
   currentUpload,
   bitrateHistory,
+  error,
 }) {
   const [fileName, setFileName] = useState("");
 
@@ -81,6 +82,33 @@ export default function UploadPanel({
           <input type="file" onChange={handleUpload} />
         </label>
       </div>
+
+      {/* Show billing CTA when user hit rate/usage limit (429) */}
+      {error && error.response?.status === 429 && (
+        <div className="card" style={{ marginTop: 16, borderLeft: '4px solid #f59e0b' }}>
+          <h3 style={{ margin: 0 }}>Upgrade required</h3>
+          <p style={{ marginTop: 8 }}>
+            Your free plan has expired or you've reached your usage limit. Upgrade to the Premium plan to continue uploading large files and enjoy higher reliability and faster uploads.
+          </p>
+          <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+            <button
+              className="primary-button"
+              onClick={() => {
+                // navigate to pricing / purchase page - replace URL with your billing flow
+                window.location.href = '/pricing';
+              }}
+            >
+              View pricing & upgrade
+            </button>
+            <button
+              className="secondary-button"
+              onClick={() => window.location.href = '/support'}
+            >
+              Contact support
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="upload-meta">
         <div>

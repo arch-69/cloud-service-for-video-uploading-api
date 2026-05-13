@@ -145,7 +145,8 @@ export const useMultipartUpload = () => {
 
       setStatus("FAILED");
 
-      setError(err?.response?.data?.message || err.message);
+      // store the full error so UI can inspect status codes
+      setError(err);
     }
   };
 
@@ -181,7 +182,7 @@ export const useMultipartUpload = () => {
 
       setStatus("FAILED");
 
-      setError(err?.response?.data?.message || err.message);
+      setError(err);
     }
   };
 

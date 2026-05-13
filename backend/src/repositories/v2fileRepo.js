@@ -102,6 +102,9 @@ const markAsCompleted = ({ uploadId, finalUrl }) =>
     { returnDocument: "after" },
   );
 
+const getCompletedUploads = ({ _id }) =>
+  Upload.find({ uploadedBy: _id, status: "COMPLETED" });
+
 export default {
   createUpload,
   findByUploadId,
@@ -112,4 +115,5 @@ export default {
   getUploadStatus,
   updateProgress,
   markAsCompleted,
+  getCompletedUploads,
 };

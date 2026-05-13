@@ -53,6 +53,7 @@ function App() {
     isPaused: uploadControls.isPaused,
     currentUpload: uploadControls.currentUpload,
     bitrateHistory: uploadControls.bitrateHistory,
+    error: uploadControls.error,
   };
 
   useEffect(() => {

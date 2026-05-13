@@ -42,11 +42,34 @@ const login = asyncHandler(async (req, res) => {
 
 const refresh = asyncHandler(async (req, res) => {
   const response = await authService.refresh(req.body);
+  return res.status(200).json(
+    new ApiResponse(200, "token generated successfully", {
+      accessToken: response,
+    }),
+  );
+});
+
+const singInWithGoogle = asyncHandler(async (req, res) => {
+  // console.log(req.body);
+  const { idToken } = req.body;
+  const { accessToken, refreshToken, user } =
+    await authService.singInWithGoogle(idToken);
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  };
+
   return res
     .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
     .json(
-      new ApiResponse(200, "token generated successfully", {
-        accessToken: response,
+      new ApiResponse(200, "User logged in successfully", {
+        user,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
       }),
     );
 });
@@ -55,4 +78,5 @@ export default {
   signup,
   login,
   refresh,
+  singInWithGoogle,
 };

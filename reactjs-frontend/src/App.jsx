@@ -19,7 +19,15 @@ function App() {
     window.localStorage.getItem("cloud_theme") || "dark"
   );
 
-  const { user, users, login, register, logout } = useAuth();
+  const {
+    user,
+    users,
+    login,
+    register,
+    logout,
+    googleSignIn,
+    startGoogleSignIn,
+  } = useAuth();
   const {
     records,
     activities,
@@ -75,7 +83,16 @@ function App() {
 
   if (!user) {
     return (
-      <AuthPanel onLogin={login} onRegister={register} />
+      <AuthPanel
+        onLogin={login}
+        onRegister={register}
+        onGoogleSignIn={async () => {
+          const idToken = await startGoogleSignIn();
+          if (!idToken) throw new Error("No id token received from Google");
+          const result = await googleSignIn(idToken);
+          if (!result.ok) throw new Error(result.error || "Google sign-in failed");
+        }}
+      />
     );
   }
 

@@ -2,9 +2,7 @@ import { useRef, useState } from "react";
 
 import { createChunks } from "../utils/chunk.utils";
 
-import {
-  uploadChunksInParallel,
-} from "../utils/parallelUpload.utils";
+import { uploadChunksInParallel } from "../utils/parallelUpload.utils";
 
 import {
   startMultipartUploadApi,
@@ -13,64 +11,38 @@ import {
 } from "../api/upload.api";
 
 export const useMultipartUpload = () => {
+  const [progress, setProgress] = useState(0);
 
-  const [progress, setProgress] =
-    useState(0);
+  const [status, setStatus] = useState("IDLE");
 
-  const [status, setStatus] =
-    useState("IDLE");
+  const [error, setError] = useState(null);
 
-  const [error, setError] =
-    useState(null);
+  const [uploadedParts, setUploadedParts] = useState([]);
 
-  const [uploadedParts, setUploadedParts] =
-    useState([]);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const [isPaused, setIsPaused] =
-    useState(false);
+  const [currentUpload, setCurrentUpload] = useState(null);
 
-  const [currentUpload, setCurrentUpload] =
-    useState(null);
+  const abortControllerRef = useRef(null);
 
-  const abortControllerRef =
-    useRef(null);
+  const chunksRef = useRef([]);
 
-  const chunksRef =
-    useRef([]);
+  const completedPartsRef = useRef([]);
 
-  const completedPartsRef =
-    useRef([]);
+  const uploadMetaRef = useRef(null);
 
-  const uploadMetaRef =
-    useRef(null);
+  const startUpload = async ({ chunks, uploadId, key, fileType }) => {
+    abortControllerRef.current = new AbortController();
 
-  const startUpload = async ({
-    chunks,
-    uploadId,
-    key,
-    fileType,
-  }) => {
+    const uploadedPartNumbers = new Set(
+      completedPartsRef.current.map((part) => part.PartNumber),
+    );
 
-    abortControllerRef.current =
-      new AbortController();
-
-    const uploadedPartNumbers =
-      new Set(
-        completedPartsRef.current.map(
-          (part) => part.PartNumber
-        )
-      );
-
-    const remainingChunks =
-      chunks.filter(
-        (chunk) =>
-          !uploadedPartNumbers.has(
-            chunk.partNumber
-          )
-      );
+    const remainingChunks = chunks.filter(
+      (chunk) => !uploadedPartNumbers.has(chunk.partNumber),
+    );
 
     await uploadChunksInParallel({
-
       chunks: remainingChunks,
 
       uploadId,
@@ -79,50 +51,35 @@ export const useMultipartUpload = () => {
 
       fileType,
 
-      signal:
-        abortControllerRef.current.signal,
+      signal: abortControllerRef.current.signal,
 
       onPartComplete: (part) => {
-
         completedPartsRef.current.push(part);
 
-        setUploadedParts([
-          ...completedPartsRef.current,
-        ]);
+        setUploadedParts([...completedPartsRef.current]);
 
-        const nextProgress =
-          Math.round(
-            (
-              completedPartsRef.current.length /
-              chunks.length
-            ) * 100
-          );
+        const nextProgress = Math.round(
+          (completedPartsRef.current.length / chunks.length) * 100,
+        );
 
         setProgress(nextProgress);
       },
-
     });
 
-    if (
-      abortControllerRef.current.signal.aborted
-    ) {
+    if (abortControllerRef.current.signal.aborted) {
       return;
     }
 
     setStatus("COMPLETING");
 
     await completeMultipartUploadApi({
-
       uploadId,
 
       key,
 
-      parts:
-        completedPartsRef.current.sort(
-          (a, b) =>
-            a.PartNumber - b.PartNumber
-        ),
-
+      parts: completedPartsRef.current.sort(
+        (a, b) => a.PartNumber - b.PartNumber,
+      ),
     });
 
     setProgress(100);
@@ -131,9 +88,7 @@ export const useMultipartUpload = () => {
   };
 
   const uploadFile = async (file) => {
-
     try {
-
       setError(null);
 
       setProgress(0);
@@ -144,23 +99,19 @@ export const useMultipartUpload = () => {
 
       completedPartsRef.current = [];
 
-      const chunks =
-        createChunks(file);
+      const chunks = createChunks(file);
 
       chunksRef.current = chunks;
 
-      const { uploadId, key } =
-        await startMultipartUploadApi({
+      const { uploadId, key } = await startMultipartUploadApi({
+        fileName: file.name,
 
-          fileName: file.name,
+        fileType: file.type,
 
-          fileType: file.type,
+        fileSize: file.size,
 
-          fileSize: file.size,
-
-          totalParts: chunks.length,
-
-        });
+        totalParts: chunks.length,
+      });
 
       uploadMetaRef.current = {
         uploadId,
@@ -177,7 +128,6 @@ export const useMultipartUpload = () => {
       setStatus("UPLOADING");
 
       await startUpload({
-
         chunks,
 
         uploadId,
@@ -185,14 +135,9 @@ export const useMultipartUpload = () => {
         key,
 
         fileType: file.type,
-
       });
-
     } catch (err) {
-
-      if (
-        abortControllerRef.current?.signal?.aborted
-      ) {
+      if (abortControllerRef.current?.signal?.aborted) {
         return;
       }
 
@@ -200,15 +145,11 @@ export const useMultipartUpload = () => {
 
       setStatus("FAILED");
 
-      setError(
-        err?.response?.data?.message ||
-        err.message
-      );
+      setError(err?.response?.data?.message || err.message);
     }
   };
 
   const pauseUpload = () => {
-
     abortControllerRef.current?.abort();
 
     setIsPaused(true);
@@ -217,9 +158,7 @@ export const useMultipartUpload = () => {
   };
 
   const resumeUpload = async () => {
-
     try {
-
       if (!uploadMetaRef.current) {
         return;
       }
@@ -229,38 +168,25 @@ export const useMultipartUpload = () => {
       setStatus("UPLOADING");
 
       await startUpload({
+        chunks: chunksRef.current,
 
-        chunks:
-          chunksRef.current,
+        uploadId: uploadMetaRef.current.uploadId,
 
-        uploadId:
-          uploadMetaRef.current.uploadId,
+        key: uploadMetaRef.current.key,
 
-        key:
-          uploadMetaRef.current.key,
-
-        fileType:
-          uploadMetaRef.current.fileType,
-
+        fileType: uploadMetaRef.current.fileType,
       });
-
     } catch (err) {
-
       console.error(err);
 
       setStatus("FAILED");
 
-      setError(
-        err?.response?.data?.message ||
-        err.message
-      );
+      setError(err?.response?.data?.message || err.message);
     }
   };
 
   const cancelUpload = async () => {
-
     try {
-
       abortControllerRef.current?.abort();
 
       if (!uploadMetaRef.current) {
@@ -268,13 +194,9 @@ export const useMultipartUpload = () => {
       }
 
       await abortMultipartUploadApi({
+        uploadId: uploadMetaRef.current.uploadId,
 
-        uploadId:
-          uploadMetaRef.current.uploadId,
-
-        key:
-          uploadMetaRef.current.key,
-
+        key: uploadMetaRef.current.key,
       });
 
       setStatus("CANCELLED");
@@ -284,15 +206,12 @@ export const useMultipartUpload = () => {
       completedPartsRef.current = [];
 
       chunksRef.current = [];
-
     } catch (err) {
-
       console.error(err);
     }
   };
 
   return {
-
     progress,
 
     status,
@@ -312,6 +231,5 @@ export const useMultipartUpload = () => {
     resumeUpload,
 
     cancelUpload,
-
   };
 };

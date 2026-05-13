@@ -9,7 +9,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extends: false }));
+app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   console.log("HTTP " + req.method + " - " + req.url + " - " + req.body);
@@ -26,19 +26,19 @@ app.use("/api/v2/file", v2Routes);
 //     return res.status(200).json({"url":url});
 // })
 
-app.post("/", async (req, res) => {
-  const uploadId = req.body.uploadId;
-  console.log(uploadId);
-  const data = await Upload.findOne(
-    { uploadId },
-    {
-      uploadedParts: 1,
-    },
-    { _id: false },
-  ).lean();
+// app.post("/", async (req, res) => {
+//   const uploadId = req.body.uploadId;
+//   console.log(uploadId);
+//   const data = await Upload.findOne(
+//     { uploadId },
+//     {
+//       uploadedParts: 1,
+//     },
+//     { _id: false },
+//   ).lean();
 
-  return res.status(200).json({ data: data });
-});
+//   return res.status(200).json({ data: data });
+// });
 
 app.use((err, req, res, next) => {
   const errorCode =

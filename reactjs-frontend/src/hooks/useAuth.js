@@ -8,6 +8,7 @@ import {
   loginApi,
   refreshTokenApi,
   registerApi,
+  googleAuthApi,
 } from "../api/auth.api";
 
 const SESSION_KEY = "cloud_session";
@@ -116,6 +117,91 @@ export const useAuth = () => {
     removeStorage(REFRESH_TOKEN_KEY);
   };
 
+  // Accept an ID token from Google and exchange it for a session on the backend
+  const googleSignIn = async (idToken) => {
+    if (!idToken) return { ok: false, error: "No idToken provided" };
+
+    try {
+      const response = await googleAuthApi({ idToken });
+      if (!response?.success) {
+        return { ok: false, error: response?.message || "Google sign-in failed" };
+      }
+
+      const nextUser = response.data?.user;
+      const nextAccessToken = response.data?.accessToken;
+      const nextRefreshToken = response.data?.refreshToken;
+
+      persistSession({ nextUser, nextAccessToken, nextRefreshToken });
+
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err?.message || "Google sign-in failed" };
+    }
+  };
+
+  // Optional helper to initialize Google Identity SDK and prompt sign-in.
+  // This will only work if VITE_GOOGLE_CLIENT_ID is set and the app is configured to use Google's
+  // Identity Services. We provide a small convenience wrapper but keep it optional.
+  const startGoogleSignIn = async () => {
+    // Ensure env var is read and trimmed
+    let clientId = import.meta.env?.VITE_GOOGLE_CLIENT_ID;
+    if (typeof clientId === 'string') clientId = clientId.trim();
+    if (!clientId) {
+      throw new Error("Google client ID not configured (VITE_GOOGLE_CLIENT_ID). Please set VITE_GOOGLE_CLIENT_ID in your .env and restart the dev server.");
+    }
+
+    // Dynamically load the Google Identity Services script
+    if (!window.google?.accounts?.id) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://accounts.google.com/gsi/client";
+        s.async = true;
+        s.onload = () => resolve();
+  s.onerror = () => reject(new Error('Failed to load Google Identity script'));
+        document.head.appendChild(s);
+      });
+    }
+
+    // Helpful debug info in case Google returns 403 (Forbidden) or FedCM is disabled
+    // Common causes:
+    // - Client ID not correctly configured in .env or contains spaces
+    // - Running on an origin not allowed in Google Cloud Console (Authorized JavaScript origins)
+    // - Browser/site settings blocking FedCM / third-party sign-in
+    // We'll log minimal info to console to help debugging.
+    console.debug('[useAuth] starting Google sign-in', {
+      clientId: clientId ? clientId.replace(/(.{8}).+(.{8})/, '$1...$2') : null,
+      origin: window.location.origin,
+    });
+
+    return new Promise((resolve, reject) => {
+      try {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (resp) => {
+            // resp.credential is the ID token
+            if (!resp || !resp.credential) {
+              reject(new Error('No credential received from Google (user may have dismissed the prompt or FedCM is disabled)'));
+              return;
+            }
+            resolve(resp.credential);
+          },
+        });
+
+        // request a prompt; this will show a popup / One Tap depending on settings
+        // note: Google may use FedCM under the hood; if FedCM is disabled in the browser
+        // you may see a console message about it. That's a browser/site setting.
+        window.google.accounts.id.prompt();
+      } catch (err) {
+        // Provide more actionable guidance for 403 / FedCM issues
+        if (err?.message?.includes('403') || err?.message?.toLowerCase().includes('forbidden')) {
+          reject(new Error('Google Identity returned 403 Forbidden. Check that your client ID is valid and that your origin ("' + window.location.origin + '") is authorized in Google Cloud Console.')); 
+        } else {
+          reject(err);
+        }
+      }
+    });
+  };
+
   const stats = useMemo(
     () => ({
       totalUsers: user ? 1 : 0,
@@ -132,6 +218,8 @@ export const useAuth = () => {
     register,
     refreshAccessToken,
     logout,
+    googleSignIn,
+    startGoogleSignIn,
     accessToken,
   };
 };

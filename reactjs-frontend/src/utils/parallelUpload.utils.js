@@ -16,7 +16,7 @@ export const uploadChunksInParallel =
     onPartComplete,
     onPartError,
     getIsPaused,
-    waitForResume,
+    waitForResume,  
     signal,
     loadChunk,
   }) => {

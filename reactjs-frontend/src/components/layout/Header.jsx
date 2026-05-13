@@ -21,7 +21,11 @@ export default function Header({ user, onLogout, theme, onToggleTheme }) {
         </button>
         <div className="user-chip">
           <div className="avatar">
-            {user.name.slice(0, 2).toUpperCase()}
+            {user.pfp ? (
+              <img src={user.pfp} alt={`${user.name} avatar`} />
+            ) : (
+              user.name.slice(0, 2).toUpperCase()
+            )}
           </div>
           <div>
             <p className="user-name">{user.name}</p>

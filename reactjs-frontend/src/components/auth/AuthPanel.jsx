@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
+import GoogleAuthProvider from "./GoogleAuthProvider";
 
 const initialForm = {
   name: "",
@@ -7,7 +8,7 @@ const initialForm = {
   password: "",
 };
 
-export default function AuthPanel({ onLogin, onRegister }) {
+export default function AuthPanel({ onLogin, onRegister, onGoogleSignIn }) {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState(null);
@@ -127,6 +128,23 @@ export default function AuthPanel({ onLogin, onRegister }) {
 
         <div className="auth-footer">
           <p>Use your backend credentials to sign in.</p>
+          <div style={{ marginTop: 12 }}>
+            <GoogleAuthProvider
+              onClick={async () => {
+                if (!onGoogleSignIn) return;
+                setIsLoading(true);
+                setMessage(null);
+                try {
+                  await onGoogleSignIn();
+                } catch (err) {
+                  setMessage(err?.message || 'Google sign-in failed');
+                }
+                setIsLoading(false);
+              }}
+              disabled={isLoading}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
       </div>
     </section>

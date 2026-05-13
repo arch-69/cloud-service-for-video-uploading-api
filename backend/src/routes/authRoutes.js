@@ -14,4 +14,6 @@ authRoutes.post("/login", validate(userSchema.loginSchema), userCtr.login);
 
 authRoutes.post("/refresh", userCtr.refresh);
 
+authRoutes.post("/google", userCtr.singInWithGoogle);
+
 export default authRoutes;

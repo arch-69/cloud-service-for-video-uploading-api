@@ -26,3 +26,13 @@ export const refreshTokenApi = async (payload) => {
 
   return response.data;
 };
+
+export const googleAuthApi = async (payload) => {
+  // Expect payload: { idToken }
+  const response = await httpClient.post(
+    "/v1/auth/google",
+     payload
+  );
+
+  return response.data;
+};

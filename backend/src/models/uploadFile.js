@@ -274,6 +274,8 @@ const uploadSchema = new mongoose.Schema(
 
     expiresAt: {
       type: Date,
+      // FIX: Wrapped in an arrow function so it runs dynamically on every insert
+      default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
     },
   },
   {
@@ -285,22 +287,18 @@ const uploadSchema = new mongoose.Schema(
 // INDEXES
 // -----------------------------------
 
-// uploadSchema.index({
-//   uploadedBy: 1,
-// });
+uploadSchema.index({ status: 1 });
 
-uploadSchema.index({
-  status: 1,
-});
-
-uploadSchema.index({
-  createdAt: -1,
-});
-
-// -----------------------------------
-// MODEL
-// -----------------------------------
+// FIX: Target explicitly which statuses are temporary instead of using $ne
+uploadSchema.index(
+  { createdAt: 1 },
+  {
+    expireAfterSeconds: 60, // 24 hours (86400 seconds)
+    partialFilterExpression: {
+      status: { $in: ["PENDING", "UPLOADING", "PARTIAL", "FAILED"] },
+    },
+  },
+);
 
 const Upload = mongoose.model("Upload", uploadSchema);
-
 export default Upload;

@@ -55,13 +55,6 @@ const refresh = async ({ refreshToken }) => {
 
 const singInWithGoogle = async (token) => {
   try {
-    const use = {
-      email: "m.abrarhusayn@gmail.com",
-      email_verified: true,
-      name: "Abrar",
-      picture:
-        "https://lh3.googleusercontent.com/a/ACg8ocKy__V6MArqXvLM_PHPn0EeVcwUlL1tk9EIVRYwZWoMSUX4K68=s96-c",
-    };
     const { email, name, picture } = await verifyGoogleToken(token);
 
     const user = await userRepo.findByEmail({ email });

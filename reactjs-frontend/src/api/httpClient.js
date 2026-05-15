@@ -5,7 +5,7 @@ const ACCESS_TOKEN_KEY = "cloud_access_token";
 const REFRESH_TOKEN_KEY = "cloud_refresh_token";
 
 const httpClient = axios.create({
-  baseURL: "http://localhost:3200/api",
+  baseURL: import.meta.env?.VITE_BASE_URL
 });
 
 httpClient.interceptors.request.use((config) => {

@@ -57,7 +57,21 @@ export const useUploadRecords = () => {
       fetchUploads();
     }, 0);
 
-    return () => clearTimeout(timer);
+    // listen for logout so we can clear in-memory records/activities
+    const onLogout = () => {
+      setRecords([]);
+      setActivities([]);
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('auth:loggedout', onLogout);
+    }
+
+    return () => {
+      clearTimeout(timer);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('auth:loggedout', onLogout);
+      }
+    };
   }, [fetchUploads]);
 
   const saveRecord = useCallback((record) => {

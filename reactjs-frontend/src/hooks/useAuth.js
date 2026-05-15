@@ -141,6 +141,18 @@ export const useAuth = () => {
     removeStorage(SESSION_KEY);
     removeStorage(ACCESS_TOKEN_KEY);
     removeStorage(REFRESH_TOKEN_KEY);
+    // clear persisted upload records and activities on logout to avoid leaking data between users
+    try {
+      removeStorage('cloud_upload_records');
+      removeStorage('cloud_upload_activity');
+    } catch {
+      // ignore
+    }
+
+    // notify other parts of the app (and same-tab listeners) that logout occurred
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth:loggedout'));
+    }
   };
 
   // Accept an ID token from Google and exchange it for a session on the backend

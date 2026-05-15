@@ -272,11 +272,11 @@ const uploadSchema = new mongoose.Schema(
     // AUTO DELETE / EXPIRY
     // -----------------------------------
 
-    expiresAt: {
-      type: Date,
-      // FIX: Wrapped in an arrow function so it runs dynamically on every insert
-      default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-    },
+    // expiresAt: {
+    //   type: Date,
+    //   // FIX: Wrapped in an arrow function so it runs dynamically on every insert
+    //   default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+    // },
   },
   {
     timestamps: true,
@@ -293,7 +293,7 @@ uploadSchema.index({ status: 1 });
 uploadSchema.index(
   { createdAt: 1 },
   {
-    expireAfterSeconds: 60, // 24 hours (86400 seconds)
+    expireAfterSeconds: 3600, // 24 hours (86400 seconds)
     partialFilterExpression: {
       status: { $in: ["PENDING", "UPLOADING", "PARTIAL", "FAILED"] },
     },

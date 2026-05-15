@@ -74,7 +74,7 @@ const getPreSignedUrl = async ({ uploadId, key, partNumber }) => {
 const saveUploadedPart = async ({ uploadId, partNumber, etag, chunkSize }) => {
   console.log(uploadId, partNumber, etag);
   const isUploadExist = await v2fileRepo.findByUploadId({ uploadId });
-
+  console.log(isUploadExist);
   if (!isUploadExist) throw new ApiError(404, "uploaded data not found");
 
   const res = await v2fileRepo.addUploadedPart({
@@ -111,11 +111,11 @@ const completeUpload = async ({ key, uploadId, parts }) => {
   };
 };
 
-const getUploadedParts = async ({ uploadId, key }) => {
-  // const isExist = await v2fileRepo.findByUploadId({ uploadId });
-  // if (!isExist) throw new ApiError(404, "uploaded data not found!!", null);
+const getUploadedParts = async ({ uploadId }) => {
+  const isExist = await v2fileRepo.findByUploadId({ uploadId });
+  if (!isExist) throw new ApiError(404, "uploaded data not found!!", null);
 
-  // const key = isExist.key;
+  const key = isExist.key;
 
   const command = new ListPartsCommand({
     Bucket: process.env.BUCKET_NAME,

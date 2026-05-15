@@ -8,6 +8,7 @@ import {
   startMultipartUploadApi,
   completeMultipartUploadApi,
   abortMultipartUploadApi,
+  getUploadedPartsApi,
 } from "../api/upload.api";
 
 export const useMultipartUpload = () => {
@@ -34,13 +35,31 @@ export const useMultipartUpload = () => {
   const startUpload = async ({ chunks, uploadId, key, fileType }) => {
     abortControllerRef.current = new AbortController();
 
-    const uploadedPartNumbers = new Set(
-      completedPartsRef.current.map((part) => part.PartNumber),
-    );
+    // Prefer server-side uploaded parts to avoid inconsistencies across sessions
+    let serverUploadedParts;
+    try {
+      serverUploadedParts = await getUploadedPartsApi(uploadId);
+    } catch (e) {
+      // If the server call fails, fall back to in-memory tracking
+      console.warn('[useMultipartUpload] failed to fetch uploaded parts from server, falling back to local state', e?.message || e);
+      serverUploadedParts = [];
+    }
 
-    const remainingChunks = chunks.filter(
-      (chunk) => !uploadedPartNumbers.has(chunk.partNumber),
-    );
+    // Merge server parts with local completed parts (dedupe by PartNumber)
+    const partsByNumber = new Map();
+    (serverUploadedParts || []).forEach((p) => {
+      if (p && p.PartNumber != null) partsByNumber.set(p.PartNumber, p);
+    });
+    (completedPartsRef.current || []).forEach((p) => {
+      if (p && p.PartNumber != null) partsByNumber.set(p.PartNumber, p);
+    });
+
+    const mergedCompletedParts = Array.from(partsByNumber.values()).sort((a, b) => a.PartNumber - b.PartNumber);
+    completedPartsRef.current = mergedCompletedParts;
+    setUploadedParts([...mergedCompletedParts]);
+
+    const uploadedPartNumbers = new Set(mergedCompletedParts.map((part) => part.PartNumber));
+    const remainingChunks = chunks.filter((chunk) => !uploadedPartNumbers.has(chunk.partNumber));
 
     await uploadChunksInParallel({
       chunks: remainingChunks,

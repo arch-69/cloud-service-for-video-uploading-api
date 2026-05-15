@@ -4,6 +4,7 @@ import v2fileSchema from "../validations/v2fileSchema.js";
 import v2ctr from "../controllers/v2fileController.js";
 import auth from "../middlewares/auth.js";
 import checkUserSubscribed from "../middlewares/checkPremium.js";
+import videoStreamController from "../controllers/videoStreamController.js";
 
 const v2Routes = express.Router();
 
@@ -49,6 +50,13 @@ v2Routes.post(
   auth.authenticate,
   auth.authorize("user", "admin"),
   v2ctr.abortUploadingPart,
+);
+
+v2Routes.post(
+  "/get-streaming-url",
+  auth.authenticate,
+  auth.authorize("user", "admin"),
+  videoStreamController.getPresingedUrl,
 );
 
 export default v2Routes;

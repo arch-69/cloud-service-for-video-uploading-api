@@ -9,11 +9,27 @@ import SettingsPanel from "./components/dashboard/SettingsPanel";
 import UploadPanel from "./components/upload/UploadPanel";
 import UploadList from "./components/upload/UploadList";
 import ActivityFeed from "./components/shared/ActivityFeed";
+import VideoPlayer from "./components/upload/VideoPlayer";
 import { useAuth } from "./hooks/useAuth";
 import { useUploadRecords } from "./hooks/useUploadRecords";
 import { useMultipartUpload } from "./hooks/useMultipartUpload";
 
 function App() {
+  const [routeVideoKey, setRouteVideoKey] = useState(null);
+
+  useEffect(() => {
+    const handleRoute = () => {
+      const m = window.location.pathname.match(/^\/video\/(.+)$/);
+      if (m) {
+        setRouteVideoKey(decodeURIComponent(m[1]));
+      } else {
+        setRouteVideoKey(null);
+      }
+    };
+    handleRoute();
+    window.addEventListener('popstate', handleRoute);
+    return () => window.removeEventListener('popstate', handleRoute);
+  }, []);
   const [activeView, setActiveView] = useState("dashboard");
   const [theme, setTheme] = useState(() =>
     window.localStorage.getItem("cloud_theme") || "dark"
@@ -118,7 +134,9 @@ function App() {
         />
 
         <section className="app-content">
-          {activeView === "dashboard" && (
+          {routeVideoKey ? (
+            <VideoPlayer keyId={routeVideoKey} />
+          ) : activeView === "dashboard" && (
             user.role === "admin" ? (
               <AdminDashboard
                 records={records}

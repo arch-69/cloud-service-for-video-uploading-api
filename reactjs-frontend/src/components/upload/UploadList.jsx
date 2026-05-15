@@ -10,7 +10,18 @@ export default function UploadList({ records, title }) {
       {records.length ? (
         <ul>
           {records.map((record) => (
-            <li key={record.id}>
+            <li
+              key={record.id}
+              style={{ cursor: record.key ? 'pointer' : 'default' }}
+              onClick={() => {
+                if (!record.key) return;
+                // navigate to /video/:key
+                const encoded = encodeURIComponent(record.key);
+                window.history.pushState({}, '', `/video/${encoded}`);
+                // dispatch a popstate so single-page app can react
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+            >
               <div>
                 <p>{record.fileName}</p>
                 <span className="muted small">

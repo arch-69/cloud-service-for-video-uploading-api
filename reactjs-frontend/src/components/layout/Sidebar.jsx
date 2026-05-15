@@ -5,6 +5,7 @@ import {
   ShieldCheck,
   Activity,
   Settings,
+  ArrowLeft,
 } from "lucide-react";
 
 const navItems = [
@@ -20,6 +21,7 @@ export default function Sidebar({
   onNavigate,
   role,
 }) {
+  const isVideoRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/video/');
   return (
     <aside className="sidebar">
       <div className="sidebar__brand">
@@ -41,12 +43,33 @@ export default function Sidebar({
 
             return (
               <button
-                key={item.id}
-                className={`nav-item ${isActive ? "active" : ""}`}
-                onClick={() => onNavigate(item.id)}
-              >
+                  key={item.id}
+                  className={`nav-item ${isActive ? "active" : ""}`}
+                  onClick={() => {
+                    // map view id to a friendly path and push history so back/forward works
+                    const pathMap = {
+                      dashboard: '/',
+                      uploads: '/uploads',
+                      activity: '/activity',
+                      admin: '/admin',
+                      settings: '/settings',
+                    };
+                    const path = pathMap[item.id] || '/';
+                    window.history.pushState({}, '', path);
+                    // notify SPA routing
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                    onNavigate(item.id);
+                  }}
+                >
                 <Icon size={18} />
-                <span>{item.label}</span>
+                <span>
+                  {item.label}
+                  {item.id === 'dashboard' && isVideoRoute && (
+                    <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center' }}>
+                      <ArrowLeft size={14} />
+                    </span>
+                  )}
+                </span>
               </button>
             );
           })}

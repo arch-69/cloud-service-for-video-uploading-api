@@ -309,6 +309,17 @@
   color: var(--muted);
 }
 
+.audio-player {
+  width: 100%;
+}
+
+.media-image {
+  width: 100%;
+  object-fit: contain;
+  max-height: 72vh;
+  display: block;
+}
+
 .stat-card h3 {
   margin-top: 8px;
   font-size: 1.5rem;

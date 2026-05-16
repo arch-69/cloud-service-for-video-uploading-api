@@ -94,15 +94,19 @@ export default function UploadPanel({
             <button
               className="primary-button"
               onClick={() => {
-                // navigate to pricing / purchase page - replace URL with your billing flow
-                window.location.href = '/pricing';
+                // use SPA nav so app responds without full reload
+                window.history.pushState({}, '', '/pricing');
+                window.dispatchEvent(new PopStateEvent('popstate'));
               }}
             >
               View pricing & upgrade
             </button>
             <button
               className="secondary-button"
-              onClick={() => window.location.href = '/support'}
+              onClick={() => {
+                window.history.pushState({}, '', '/support');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
             >
               Contact support
             </button>
